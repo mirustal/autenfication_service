@@ -2,14 +2,12 @@ package routes
 
 import (
 	"context"
-
+	"service/app/models"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type requestDTO struct {
-	Description string `json:"description,omitempty"`
-}
+
 
 type responseDTO struct {
 	Description  string `json:"description,omitempty"`
@@ -18,25 +16,23 @@ type responseDTO struct {
 }
 
 
-func GetToken(c *fiber.Ctx) error {
-	println("Handle CreateRoom")
 
-	queryInfo := new(requestDTO)
-	if err := c.BodyParser(&queryInfo); err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "invalid body",
-		})
+
+func GetToken(c *fiber.Ctx) error {
+	guid := c.Params("guid")
+	p := new(models.UserCookie)
+
+	if err := c.CookieParser(p); err != nil {
+		return err
 	}
 
-	room, err :=  storage.CreateToken(context.Background())
+	refreshToken, err := storage.SearchTokenByGuid(context.Background(), guid)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "error on created token",
-		})
+		return err
 	}
 
 	return c.Status(200).JSON(fiber.Map{
-		"room": room,
+		"AccessToken": p.AccessToken,
+		"RefreshToken": refreshToken,
 	})
-
 }

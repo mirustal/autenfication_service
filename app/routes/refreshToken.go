@@ -2,7 +2,7 @@ package routes
 
 import (
 	"context"
-
+	"service/app/models"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -19,24 +19,36 @@ type response struct {
 
 
 func RefreshToken(c *fiber.Ctx) error {
-	println("Handle CreateRoom")
+	guid := c.Params("guid")
+	p := new(models.UserCookie)
 
-	queryInfo := new(requestRefreshDTO)
-	if err := c.BodyParser(&queryInfo); err != nil {
-		return c.Status(400).JSON(fiber.Map{
-			"error": "invalid body",
-		})
+	if err := c.CookieParser(p); err != nil {
+		return err
 	}
 
-	answer, err :=  storage.UpdateToken(context.Background(), queryInfo.refreshToken)
+	refreshToken, err := storage.SearchTokenByGuid(context.Background(), guid)
 	if err != nil {
+		return err
+	}
+
+	if refreshToken != p.RefreshToken {
 		return c.Status(400).JSON(fiber.Map{
-			"error": "error on refresh token",
+			"answer": "not access",
 		})
 	}
+
+	refreshToken, err = storage.UpdateToken(context.Background(), guid)
+	if err != nil {
+		return err
+	}
+
+	cookie := new(fiber.Cookie)
+	cookie.Name = "refreshtoken"
+	cookie.Value = refreshToken
+	c.Cookie(cookie)
 
 	return c.Status(200).JSON(fiber.Map{
-		"asnwer": answer,
+		"AccessToken": p.AccessToken,
+		"RefreshToken": refreshToken,
 	})
-
 }

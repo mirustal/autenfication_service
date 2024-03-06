@@ -1,13 +1,13 @@
 package queries
 
 import (
-	"service/app/models"
 	"context"
 )
 
 type Storage interface {
-	CreateToken(context.Context) (models.AccessResponse, error)
-	UpdateToken(context.Context, string) (models.AccessResponse, error)
-	SearchTokenByRefresh(context.Context, string) (models.AccessResponse, error)
+	CreateToken(context.Context, string) (string, error)
+	UpdateToken(context.Context, string) (string, error)
+	SearchTokenByRefresh(context.Context, string) (string, error)
+	SearchTokenByGuid(context.Context, string) (string, error)
 	DeleteToken(context.Context, string) (error)
 }

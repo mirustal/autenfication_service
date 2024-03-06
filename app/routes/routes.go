@@ -24,11 +24,11 @@ func Init(router *fiber.App, cfg *configs.Config, log *slog.Logger){
 		os.Exit(0)
 	}
 	storage = database.NewStorage(db, cfg.MongoDB.Collection)
-
-
-	serviceGroup := router.Group("/token")
 	router.Use(logger.New())
-	serviceGroup.Get("/getToken", GetToken)
-	serviceGroup.Post("/refreshToken", RefreshToken)
+
+    router.Use("/:guid/", AuthHandler)
+
+    router.Get("/:guid/getToken", GetToken)
+    router.Get("/:guid/refreshToken", RefreshToken)
 
 }
