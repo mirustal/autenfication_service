@@ -18,6 +18,7 @@ type response struct {
 }
 
 
+
 func RefreshToken(c *fiber.Ctx) error {
 	guid := c.Params("guid")
 	p := new(models.UserCookie)
@@ -26,17 +27,24 @@ func RefreshToken(c *fiber.Ctx) error {
 		return err
 	}
 
-	check, err := storage.ValidateRefreshToken(context.Background(), guid, p.RefreshToken)
+	dataUser := RequestAuthDTO{
+		Guid:     guid,		
+		Login:    login,
+		Password: password,
+	}
+
+	check, err := storage.ValidateRefreshToken(context.Background(), dataUser.Guid, p.RefreshToken)
 	if !check || err != nil  {
 		return err
 	}
 
-	accessToken, err := CreateAccessToken(guid)
+	
+	accessToken, err := CreateAccessToken(dataUser)
 	if err != nil  {
 		return err
 	}
 
-	refreshToken, err := storage.UpdateRefreshToken(context.Background(), guid)
+	refreshToken, err := storage.UpdateRefreshToken(context.Background(),dataUser.Guid)
 	if err != nil {
 		return err
 	}
@@ -45,8 +53,8 @@ func RefreshToken(c *fiber.Ctx) error {
 	SetCookie(c, "refresht", refreshToken)
 
 	return c.Status(200).JSON(fiber.Map{
-		"AccessToken": p.AccessToken,
-		"RefreshToken": p.RefreshToken,
+		"AccessToken": accessToken,
+		"RefreshToken": refreshToken,
 	})
 }
 

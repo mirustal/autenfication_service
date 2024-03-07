@@ -31,6 +31,7 @@ var cfg *Config
 var once sync.Once
 
 func GetConfig() *Config {
+
 	configPath := os.Getenv("CONFIG_PATH")
 
 	if configPath == "" {
@@ -46,6 +47,11 @@ func GetConfig() *Config {
 		if err := cleanenv.ReadConfig(configPath, cfg); err != nil {
 			cleanenv.GetDescription(cfg, nil)
 		}
+
+		if mongoHost := os.Getenv("MONGODB_HOST"); mongoHost != "" {
+			cfg.MongoDB.Host = mongoHost
+		}
+
 	})
 	return cfg
 }

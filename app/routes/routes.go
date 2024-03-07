@@ -26,7 +26,6 @@ func Init(app *fiber.App, cfg *configs.Config, log *slog.Logger){
 	storage = database.NewStorage(db, cfg.MongoDB.Collection)
 	app.Use(logger.New())
 
-    app.Use("/:guid/", AuthHandler)
 	// app.Use(jwtware.New(jwtware.Config{
 	// 	SigningKey: jwtware.SigningKey{
 	// 		JWTAlg: jwtware.RS512,
@@ -34,7 +33,7 @@ func Init(app *fiber.App, cfg *configs.Config, log *slog.Logger){
 	// 	},
 	// }))
 
-    app.Get("/:guid/getToken", GetToken)
+    app.Get("/:guid/getToken",AuthHandler,  GetToken)
     app.Get("/:guid/refreshToken", RefreshToken)
 
 }

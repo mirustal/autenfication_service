@@ -15,9 +15,11 @@ import (
 
 func main() {
 
-	os.Setenv("CONFIG_PATH", "./config.yml")
+	// os.Setenv("CONFIG_PATH", "./config.yml")
+	// os.Setenv("SECRET_KEY", "Medods_Task1")
 	cfg := configs.GetConfig()
-	// fmt.Print(cfg)
+	
+	fmt.Print(cfg)
 
 	log := logging.SetupLogger(cfg.ModeLog)
 	log.Info("Starting service", slog.String("env", cfg.ModeLog))
@@ -31,8 +33,5 @@ func main() {
 	if err := app.Listen(address); err != nil {
 		fmt.Printf("server not running %v", err)
 	}
-	
-
-
 }
 

@@ -47,7 +47,7 @@ func(d *db) UpdateRefreshToken(ctx context.Context, guid string) (string, error)
 	const msgLog = "platform.database.mongodb.updatetoken"
 	filter := bson.D{{"guid", guid}}
 	// add check filter is null	
-	randomToken := time.Now().String() + guid
+	randomToken := time.Now().UTC().String() + guid
 	refreshToken, err := bcrypt.GenerateFromPassword([]byte(randomToken), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", msgLog, err)
