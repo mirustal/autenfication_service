@@ -26,8 +26,6 @@ func AuthHandler(c *fiber.Ctx) error {
 	guid := c.Params("guid")
 	dataUser := RequestAuthDTO{
 		Guid:     guid,		
-		Login:    login,
-		Password: password,
 	}
 
 	_, err := storage.SearchTokenByGuid(context.Background(), guid)
@@ -88,8 +86,7 @@ func CreateAccessToken(dataUser RequestAuthDTO) (string, error) {
 
 	payload := jwt.MapClaims{
 		"guid":     dataUser.Guid,
-		"login":    dataUser.Login,
-		"password": dataUser.Password,
+
 		"exp":      expTime, 
 	}
 
@@ -134,18 +131,6 @@ func validatePayloadtoken(dataUser RequestAuthDTO, claims jwt.MapClaims) bool {
 	!ok || claimsGuid != dataUser.Guid {
 		return false
 		}
-
-	if claimsLogin, ok := claims["login"].(string);
-	!ok || claimsLogin != dataUser.Login {
-		return false
-	}
-
-
-	if claimsPassword, ok := claims["password"].(string); 
-	!ok || claimsPassword != dataUser.Password {
-		return false
-	}
-
 
 	return true
 
