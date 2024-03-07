@@ -16,6 +16,7 @@ WORKDIR /app/
 
 COPY config.yml  .
 ENV CONFIG_PATH="./config.yml"
+ENV SECRET_KEY="Medods_Task1"
 
 COPY --from=builder /app/main .
 
