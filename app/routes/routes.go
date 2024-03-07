@@ -17,18 +17,24 @@ import (
 var storage queries.Storage
 
 
-func Init(router *fiber.App, cfg *configs.Config, log *slog.Logger){
+func Init(app *fiber.App, cfg *configs.Config, log *slog.Logger){
 	db, err := database.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Error("failed to init storage", logging.Err(err))
 		os.Exit(0)
 	}
 	storage = database.NewStorage(db, cfg.MongoDB.Collection)
-	router.Use(logger.New())
+	app.Use(logger.New())
 
-    router.Use("/:guid/", AuthHandler)
+    app.Use("/:guid/", AuthHandler)
+	// app.Use(jwtware.New(jwtware.Config{
+	// 	SigningKey: jwtware.SigningKey{
+	// 		JWTAlg: jwtware.RS512,
+	// 		Key:	GetPrivateKey().Public(),
+	// 	},
+	// }))
 
-    router.Get("/:guid/getToken", GetToken)
-    router.Get("/:guid/refreshToken", RefreshToken)
+    app.Get("/:guid/getToken", GetToken)
+    app.Get("/:guid/refreshToken", RefreshToken)
 
 }

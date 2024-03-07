@@ -19,52 +19,57 @@ type db struct {
 	states *mongo.Collection
 }
 
-func (d *db) CreateToken(ctx context.Context, guid string) (string, error) {
+func (d *db) CreateRefreshToken(ctx context.Context, guid string) (string, error) {
 	const msgLog = "platform.database.mongodb.createtoken"
+	randomToken := time.Now().UTC().GoString() + " " + guid
+	refreshToken, err := bcrypt.GenerateFromPassword([]byte(randomToken), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", msgLog, err)
+	}
 	
-	refreshToken, err := bcrypt.GenerateFromPassword([]byte(time.Now().String()+guid), bcrypt.DefaultCost)
+
+	request := models.ResponseDB{
+		GUID:         guid,
+		RefreshToken: string(refreshToken), 
+	}
+	_, err = d.service.InsertOne(ctx, request)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", msgLog, err)
 	}
 
-	request := models.ResponseDB{
-		GUID:         guid,
-		RefreshToken: refreshToken, 
-	}
-
-    _, err = d.service.InsertOne(ctx, request) 
-    if err != nil {
-        return "", fmt.Errorf("%s: %w", msgLog, err)
-    }
-	refreshTokenEncoded := base64.StdEncoding.EncodeToString(refreshToken)
-    return refreshTokenEncoded, err
+	refreshTokenEncoded := base64.StdEncoding.EncodeToString([]byte(randomToken))
+	return refreshTokenEncoded, nil
 }
 
-func(d *db) UpdateToken(ctx context.Context, guid string) (string, error) {
+
+
+func(d *db) UpdateRefreshToken(ctx context.Context, guid string) (string, error) {
 	const msgLog = "platform.database.mongodb.updatetoken"
 	filter := bson.D{{"guid", guid}}
 	// add check filter is null	
-	refreshToken, err := bcrypt.GenerateFromPassword([]byte(time.Now().String()+guid), bcrypt.DefaultCost)
+	randomToken := time.Now().String() + guid
+	refreshToken, err := bcrypt.GenerateFromPassword([]byte(randomToken), bcrypt.DefaultCost)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", msgLog, err)
 	}
 
 	update := bson.M{
-		"refresh": refreshToken,
+		"guid": guid,
+		"refreshtoken": string(refreshToken),
 	}
 	_, err = d.service.ReplaceOne(ctx, filter, update)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", msgLog, err)
 	}
 
-	refreshTokenEncoded := base64.StdEncoding.EncodeToString(refreshToken)
+	refreshTokenEncoded := base64.StdEncoding.EncodeToString([]byte(randomToken))
 	return  refreshTokenEncoded, nil
 }
 	
 func (d *db) SearchTokenByRefresh(ctx context.Context, refreshToken string) (result string, err error) {
 	const msgLog = "platform.database.mongodb.searchtokenbyrefresh"
 	filter := bson.D{{"refresh", refreshToken}}
-	// add check filter is null
+
 	err = d.service.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
         return "", fmt.Errorf("%s: %w", msgLog, err)
@@ -81,11 +86,11 @@ func (d *db) SearchTokenByGuid(ctx context.Context, guid string) (result string,
 	if err != nil {
         return "", fmt.Errorf("%s: %w", msgLog, err)
 	}
-	result = base64.StdEncoding.EncodeToString(answer.RefreshToken)
+	result = answer.RefreshToken
 	return result, err
 }
 
-func (d *db) DeleteToken(ctx context.Context, access string) error {
+func (d *db) DeleteRefreshToken(ctx context.Context, access string) error {
 	return nil
 }
 
@@ -105,4 +110,26 @@ func strToObjectId(strIdsRoom []string) []primitive.ObjectID {
 		objectIds = append(objectIds, objectId)
 	}
 	return objectIds
+}
+
+
+func (d *db) ValidateRefreshToken(ctx context.Context, guid, token string) (bool, error) {
+
+	decodedToken, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return false, fmt.Errorf("error decoding token: %w", err)
+	}
+
+
+	hashedToken, err := d.SearchTokenByGuid(ctx, guid)
+	if err != nil {
+		return false, fmt.Errorf("error finding token by GUID: %w", err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedToken), decodedToken)
+	if err != nil {
+		return false, nil
+	}
+
+	return true, nil
 }

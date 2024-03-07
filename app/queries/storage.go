@@ -5,9 +5,10 @@ import (
 )
 
 type Storage interface {
-	CreateToken(context.Context, string) (string, error)
-	UpdateToken(context.Context, string) (string, error)
+	CreateRefreshToken(context.Context, string) (string, error)
+	UpdateRefreshToken(context.Context, string) (string, error)
 	SearchTokenByRefresh(context.Context, string) (string, error)
 	SearchTokenByGuid(context.Context, string) (string, error)
-	DeleteToken(context.Context, string) (error)
+	DeleteRefreshToken(context.Context, string) (error)
+	ValidateRefreshToken(context.Context, string, string) (bool, error)
 }

@@ -26,29 +26,29 @@ func RefreshToken(c *fiber.Ctx) error {
 		return err
 	}
 
-	refreshToken, err := storage.SearchTokenByGuid(context.Background(), guid)
+	check, err := storage.ValidateRefreshToken(context.Background(), guid, p.RefreshToken)
+	if !check || err != nil  {
+		return err
+	}
+
+	accessToken, err := CreateAccessToken(guid)
+	if err != nil  {
+		return err
+	}
+
+	refreshToken, err := storage.UpdateRefreshToken(context.Background(), guid)
 	if err != nil {
 		return err
 	}
 
-	if refreshToken != p.RefreshToken {
-		return c.Status(400).JSON(fiber.Map{
-			"answer": "not access",
-		})
-	}
-
-	refreshToken, err = storage.UpdateToken(context.Background(), guid)
-	if err != nil {
-		return err
-	}
-
-	cookie := new(fiber.Cookie)
-	cookie.Name = "refreshtoken"
-	cookie.Value = refreshToken
-	c.Cookie(cookie)
+	SetCookie(c, "accesst", accessToken)
+	SetCookie(c, "refresht", refreshToken)
 
 	return c.Status(200).JSON(fiber.Map{
 		"AccessToken": p.AccessToken,
-		"RefreshToken": refreshToken,
+		"RefreshToken": p.RefreshToken,
 	})
 }
+
+
+

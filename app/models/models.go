@@ -8,7 +8,7 @@ type AccessResponse struct {
 
 type ResponseDB struct {
 	GUID string	`json: "guid" bson:"_guid"`
-	RefreshToken []byte `json:"refreshtoken" bson:"_refreshtoken,omitempty`
+	RefreshToken string `json:"refreshtoken" bson:"_refreshtoken,omitempty`
 }
 
 type User struct {
@@ -17,6 +17,11 @@ type User struct {
 }
 
 type UserCookie struct {
-	AccessToken string `cookie:"accesstoken"`
-	RefreshToken string `cookie:"refreshtoken"`
+	AccessToken string `cookie:"accesst"`
+	RefreshToken string `cookie:"refresht"`
+}
+
+type TokenDetails struct {
+	Token     string
+	UserID    string
 }
