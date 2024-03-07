@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log/slog"
-	"os"
 	"service/app/routes"
 	"service/pkg/configs"
 	"service/pkg/logging"
