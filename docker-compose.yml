@@ -1,0 +1,24 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb-instance
+    ports:
+      - "27017:27017"
+    networks:
+      - my-network
+
+  app:
+    build: ./
+    container_name: app-instance
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_HOST=mongodb-instance
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge

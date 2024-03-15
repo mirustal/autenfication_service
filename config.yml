@@ -1,0 +1,13 @@
+---
+modelog: debug
+
+fiber:
+  type: port
+  bind_ip: 0.0.0.0
+  port: 8081
+
+mongodb:
+  host: localhost
+  port: 27017
+  database: autenfications
+  collection: autenficator
